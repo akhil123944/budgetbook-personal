@@ -18,8 +18,7 @@ class PersonalView extends GetView<PersonalController> {
 
   @override
   Widget build(BuildContext context) {
-    return
-     LayoutBuilder(
+    return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final heightFactor = constraints.maxHeight / 812; // base height
         final widthFactor = constraints.maxWidth / 375; // base width
@@ -503,5 +502,4 @@ class PersonalView extends GetView<PersonalController> {
       );
     });
   }
-
 }
