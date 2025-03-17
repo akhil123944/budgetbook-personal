@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
+import 'package:money_management/app/modules/home/views/edit_profile.dart';
 import 'package:money_management/app/modules/personal/views/expense_data.dart';
-
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login.dart';
 import '../modules/auth/views/otp.dart';
@@ -49,6 +49,11 @@ class AppPages {
       page: () => AddEntryView(),
       binding: HomeBinding(),
     ),
+    GetPage(
+      name: _Paths.EDITPROFILE,
+      page: () => EditProfile(),
+      binding: HomeBinding(),
+    ),
 
     //  personal start
 
@@ -67,7 +72,7 @@ class AppPages {
       page: () => Incomedata(),
       binding: PersonalBinding(),
     ),
-     GetPage(
+    GetPage(
       name: _Paths.PERSONALDATAGETIEXPENSE,
       page: () => Expensedata(),
       binding: PersonalBinding(),
@@ -144,11 +149,11 @@ class AppPages {
       page: () => const SplashscreenView(),
       binding: SplashScreenBinding(),
     ),
+
     GetPage(
       name: _Paths.PERSONAL_EDIT,
       page: () => const PersonalEditView(),
       binding: PersonalEditBinding(),
     ),
-   
   ];
 }

@@ -10,6 +10,7 @@ import 'package:path/path.dart';
 import 'package:money_management/app/core/constants/app_urls.dart';
 import 'package:money_management/app/modules/auth/controllers/auth_controller.dart';
 import 'package:money_management/app/routes/app_pages.dart';
+import 'package:shimmer/shimmer.dart';
 
 class PersonalController extends GetxController {
   final Rx<File?> categoryImg = Rx<File?>(null);
@@ -37,18 +38,15 @@ class PersonalController extends GetxController {
   void onInit() {
     final AuthController authController = Get.find<AuthController>();
     print('personal initialized :${authController.token.value}');
-    categoriesget();
+
     print('Catogery : $catagoires');
     super.onInit();
-    fetchPersonalFinance();
-    getINCOME();
-    getEXPENSE();
-    fetchRecentlyAdded();
   }
 
   @override
   void onReady() {
     super.onReady();
+    categoriesget();
     fetchPersonalFinance();
     getINCOME();
     getEXPENSE();
@@ -58,60 +56,65 @@ class PersonalController extends GetxController {
 
   Future<void> postIncome({required int index}) async {
     try {
-      print("🔥 Selected Category ID in postIncome(): $index");
-      print("✅ Type of index: ${index.runtimeType}");
+      // Debug the passed parameters
+      print("🔥 Selected Category ID in postIncome: $index");
+      print(
+          "✅ Type of index: ${index.runtimeType}"); // Confirm that it's an int
 
+      // Check for empty inputs
       if (incomeAmountController.text.isEmpty ||
           incomeDateController.text.isEmpty ||
           incomeDescriptionController.text.isEmpty) {
-        Get.snackbar("Error", "All fields are required",
+        Get.snackbar("Error", "All fields are required expense",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
         return;
       }
 
+      // Prepare the request body
       final body = {
         "categoryId": index.toString(),
         "amount": incomeAmountController.text.trim(),
-        "incomeDate": incomeDateController.text.trim(),
+        "incomeDate": incomeDateController.text.trim(), // ✅ Correct key
         "description": incomeDescriptionController.text.trim(),
       };
+      print("📌 Sending API request with body: $body");
 
-      final response = await authController.makeApiCall(
-        AppUrls.incomepost,
+      // Convert the body to a URL-encoded string
+      final encodedBody = Uri(queryParameters: body).query;
+
+      print("Request body: $encodedBody");
+
+      final response = await http.post(
+        Uri.parse(AppUrls.incomepost),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer ${authController.token.value}',
         },
-        body: body,
-        isPost: true,
+        body: encodedBody,
       );
 
-      if (response == null) {
-        Get.snackbar("Error", "Failed to connect to server",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
-        return;
-      }
-
       final data = jsonDecode(response.body);
-      print("Response data:$data");
+      print("Response data: $data");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar("Success", "Income transaction added",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
+        Get.offAllNamed(Routes.HOME);
 
+        final responseData = data['data'];
+        print("Response Data: $responseData");
+
+        // Clear input fields
         incomeAmountController.clear();
         incomeDateController.clear();
         incomeDescriptionController.clear();
-        Get.offNamed(Routes.HOME);
-      } else if (response.statusCode == 401 &&
-          data["message"] == "Token has expired") {
-        await authController.refreshToken();
-        await postIncome(index: index);
       } else {
-        Get.snackbar("Error", "Failed to add income: ${data['message']}",
+        Get.snackbar("Error", "Failed to add expense: ${data['message']}",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+        print("Error message: ${data['message']}");
       }
     } catch (e) {
+      // Add debug print to see the exact error
       print("Exception occurred: $e");
       Get.snackbar("Error", "Something went wrong: $e",
           snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
@@ -245,9 +248,9 @@ class PersonalController extends GetxController {
 
         Get.snackbar("Success", "Category added successfully",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
-        Get.offNamed(Routes.HOME);
+        Get.offAllNamed(Routes.HOME);
       } else {
-        print("❌ Error adding category: ${response?.body}");
+        print(" Error adding category: ${response?.body}");
         Get.snackbar("Error", "Failed to add category: ${response?.body}",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
       }
@@ -314,7 +317,6 @@ class PersonalController extends GetxController {
 
   Future<void> getEXPENSE() async {
     print("Fetching expense with token: ${authController.token.value}");
-
     final response =
         await authController.makeApiCall(AppUrls.allexpense, isGet: true);
 
@@ -500,7 +502,8 @@ class PersonalController extends GetxController {
 
         if (responseData["status"] == "Success") {
           Get.snackbar("Success", "Income details deleted successfully",
-              snackPosition: SnackPosition.BOTTOM);
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: AppColors.tealColor);
           print("✅ Income deleted successfully.");
 
           // Remove item from local list
@@ -509,6 +512,53 @@ class PersonalController extends GetxController {
           Get.snackbar("Error",
               "Failed to delete income: ${responseData["message"] ?? "Unknown error"}",
               snackPosition: SnackPosition.BOTTOM);
+          print("⚠️ API Error: ${responseData["message"]}");
+        }
+      } else {
+        Get.snackbar("Error", "Unexpected server response",
+            snackPosition: SnackPosition.BOTTOM);
+        print("⚠️ Unexpected server response: ${response?.statusCode}");
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Something went wrong: $e",
+          snackPosition: SnackPosition.BOTTOM);
+      print("⚠️ Exception: $e");
+    }
+  }
+
+  // delete expense
+
+  Future<void> deleteExpense(String id) async {
+    print('🗑️ deleteExpense Called for ID: $id');
+
+    final String url =
+        "https://s2swebsolutions.in/budgetbook/api/expense/$id"; // Use dynamic ID
+
+    print("📡 Deleting Income at URL: $url");
+    print("🔑 Token: ${authController.token.value}");
+
+    try {
+      final response = await authController.makeApiCall(
+        url,
+        isDelete: true,
+      );
+
+      if (response != null && response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        if (responseData["status"] == "Success") {
+          Get.snackbar("Success", "Expense details deleted successfully",
+              snackPosition: SnackPosition.BOTTOM);
+          print("✅ Expense deleted successfully.");
+          Get.offAllNamed(Routes.HOME);
+
+          // Remove item from local list
+          getallDATAINCOME.removeWhere((item) => item['id'].toString() == id);
+        } else {
+          Get.snackbar("Error",
+              "Failed to delete Expense: ${responseData["message"] ?? "Unknown error"}",
+              snackPosition: SnackPosition.BOTTOM,
+              borderColor: AppColors.expenseColor);
           print("⚠️ API Error: ${responseData["message"]}");
         }
       } else {
@@ -646,7 +696,7 @@ class PersonalController extends GetxController {
                                         selectedCategoryINCOMEId.value =
                                             categoryId;
                                         print(
-                                            "Selected Category ID: ${selectedCategoryINCOMEId.value}"); // Debugging
+                                            "Selected Category ID: ${selectedCategoryINCOMEId.value}");
                                       },
                                       child: Obx(() => Container(
                                             decoration: BoxDecoration(
@@ -675,9 +725,22 @@ class PersonalController extends GetxController {
                                                     loadingProgress) {
                                                   if (loadingProgress == null)
                                                     return child;
-                                                  return const Center(
-                                                      child:
-                                                          CircularProgressIndicator());
+                                                  return Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey.shade300,
+                                                    highlightColor:
+                                                        Colors.grey.shade100,
+                                                    child: Container(
+                                                      height: 40,
+                                                      width: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                    ),
+                                                  );
                                                 },
                                                 errorBuilder: (context, error,
                                                     stackTrace) {
@@ -748,7 +811,7 @@ class PersonalController extends GetxController {
                                   controller: incomeAmountController,
                                   decoration: const InputDecoration(
                                     labelText: "Amount",
-                                    prefixIcon: Icon(Icons.attach_money),
+                                    prefixIcon: Icon(Icons.currency_rupee),
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.number,
@@ -760,7 +823,7 @@ class PersonalController extends GetxController {
                                   controller: incomeDescriptionController,
                                   decoration: const InputDecoration(
                                     labelText: "Description",
-                                    prefixIcon: Icon(Icons.description),
+                                    // prefixIcon: Icon(Icons.description),
                                     border: OutlineInputBorder(),
                                   ),
                                   maxLines: 2,
@@ -865,7 +928,7 @@ class PersonalController extends GetxController {
                                         selectedCategoryEXPENSEId.value =
                                             categoryId;
                                         print(
-                                            "Selected Expense Category ID: ${selectedCategoryEXPENSEId.value}"); // Debugging
+                                            "Selected Expense Category ID: ${selectedCategoryEXPENSEId.value}");
                                       },
                                       child: Obx(() => Container(
                                             decoration: BoxDecoration(
@@ -894,9 +957,22 @@ class PersonalController extends GetxController {
                                                     loadingProgress) {
                                                   if (loadingProgress == null)
                                                     return child;
-                                                  return const Center(
-                                                      child:
-                                                          CircularProgressIndicator());
+                                                  return Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey.shade300,
+                                                    highlightColor:
+                                                        Colors.grey.shade100,
+                                                    child: Container(
+                                                      height: 40,
+                                                      width: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                    ),
+                                                  );
                                                 },
                                                 errorBuilder: (context, error,
                                                     stackTrace) {
@@ -966,7 +1042,7 @@ class PersonalController extends GetxController {
                                   controller: expenseAmountController,
                                   decoration: const InputDecoration(
                                     labelText: "Amount",
-                                    prefixIcon: Icon(Icons.attach_money),
+                                    prefixIcon: Icon(Icons.currency_rupee),
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.number,
@@ -978,7 +1054,7 @@ class PersonalController extends GetxController {
                                   controller: expenseDescriptionController,
                                   decoration: const InputDecoration(
                                     labelText: "Description",
-                                    prefixIcon: Icon(Icons.description),
+                                    // prefixIcon: Icon(Icons.),
                                     border: OutlineInputBorder(),
                                   ),
                                   maxLines: 2,
@@ -1037,4 +1113,5 @@ class PersonalController extends GetxController {
           );
         });
   }
+
 }

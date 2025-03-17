@@ -87,11 +87,11 @@ class PersonalEditView extends GetView<PersonalEditController> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          if (controller.personalController.totalIncome.value == true) {
-            controller.updateIncome();
-          } else {
-            controller.updateExpense();
-          }
+          controller.updateIncome();
+          print("income updated : ${controller.updateIncome()}");
+
+          controller.updateExpense();
+          print("income updated : ${controller.updateExpense()}");
         },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14.0),

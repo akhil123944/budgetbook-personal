@@ -154,7 +154,7 @@ class PersonalView extends GetView<PersonalController> {
                                                 SizedBox(
                                                     height: 4 * heightFactor),
                                                 Text(
-                                                  '₹${controller.totalIncome.value.toStringAsFixed(2)}',
+                                                  '₹${controller.totalIncome.value}',
                                                   style: TextStyle(
                                                     fontFamily: 'Poppins',
                                                     fontSize: 18 * widthFactor,
@@ -268,33 +268,55 @@ class PersonalView extends GetView<PersonalController> {
                 SizedBox(height: 8 * heightFactor),
                 Expanded(
                   child: Obx(() {
-                    if (controller.recentlyadded.isEmpty) {
-                      return Center(
-                        // Return this widget if data is empty
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Lottie.asset(
-                              'assets/No-Data-Animation.json',
-                              height: 120 * heightFactor,
-                              width: 120 * widthFactor,
-                            ),
-                            const Text(
-                              'No Data Available',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(height: 30.0 * heightFactor),
-                          ],
-                        ),
-                      );
-                    } else {
-                      return _buildRecentlyAddedList(heightFactor, widthFactor);
-                    }
+                    return SizedBox(
+                      height: constraints.maxHeight * 0.7,
+                      child: controller.isLoading
+                              .value // ✅ Show shimmer while fetching data
+                          ? ListView.builder(
+                              itemCount: 6, // Number of shimmer items
+                              itemBuilder: (context, index) {
+                                return Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 16),
+                                    height: 80, // Shimmer item height
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : controller.getallDATAINCOME
+                                  .isEmpty // ✅ Show animation if no data
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Lottie.asset(
+                                        'assets/No-Data-Animation.json',
+                                        height: 120 * heightFactor,
+                                        width: 120 * widthFactor,
+                                      ),
+                                      const Text(
+                                        'No Data Available',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 30.0 * heightFactor),
+                                    ],
+                                  ),
+                                )
+                              : _buildRecentlyAddedList(
+                                  heightFactor, widthFactor), // ✅ Show data
+                    );
                   }),
                 ),
               ],
@@ -412,8 +434,18 @@ class PersonalView extends GetView<PersonalController> {
                                 loadingBuilder:
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
-                                  return const CircularProgressIndicator(
-                                      strokeWidth: 2);
+                                  return Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
                                 },
                                 errorBuilder: (context, error, stackTrace) {
                                   return Image.asset(
@@ -477,15 +509,18 @@ class PersonalView extends GetView<PersonalController> {
                       onPressed: () {
                         Get.defaultDialog(
                           title: "Confirm Deletion",
+                          titleStyle:
+                              const TextStyle(color: AppColors.expenseColor),
                           middleText:
                               "Are you sure you want to delete this income?",
                           textConfirm: "Yes",
+                          cancelTextColor: AppColors.tealColor,
                           textCancel: "No",
-                          confirmTextColor: Colors.white,
+                          confirmTextColor: AppColors.expenseColor,
+                          buttonColor: AppColors.backgroundColor,
                           onConfirm: () {
-                            controller.deleteIncome(
-                                item['id'].toString()); // Pass the ID
-                            Get.offAllNamed(Routes.HOME); // Close the dialog
+                            controller.deleteIncome(item['id'].toString());
+                            Get.offAllNamed(Routes.HOME);
                           },
                         );
                       },

@@ -23,6 +23,7 @@ abstract class Routes {
   static const PERSONAL_EDIT = _Paths.PERSONAL_EDIT;
   static const PERSONALDATAGETINCOME = _Paths.PERSONALDATAGETINCOME;
   static const PERSONALDATAGETIEXPENSE = _Paths.PERSONALDATAGETIEXPENSE;
+  static const EDITPROFILE = _Paths.EDITPROFILE;
 }
 
 abstract class _Paths {
@@ -44,5 +45,6 @@ abstract class _Paths {
   static const SPLASH_SCREEN = '/splash-screen';
   static const PERSONAL_EDIT = '/personal-edit';
   static const PERSONALDATAGETINCOME = '/income_data';
-  static const PERSONALDATAGETIEXPENSE = '/expense_data.da';
+  static const PERSONALDATAGETIEXPENSE = '/expense_data';
+  static const EDITPROFILE = '/edit-profile';
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +6,7 @@ import 'package:money_management/app/modules/auth/controllers/auth_controller.da
 import 'package:money_management/app/modules/home/controllers/home_controller.dart';
 import 'package:money_management/app/modules/personal/controllers/personal_controller.dart';
 import 'package:money_management/app/routes/app_pages.dart';
+import 'package:http/http.dart' as http;
 
 class PersonalEditController extends GetxController {
   // final CategoryType = ["${PersonalController.}"]
@@ -20,7 +19,7 @@ class PersonalEditController extends GetxController {
   var getallDATAEXPENSE = <Map<String, dynamic>>[].obs;
 
   final AuthController authController = Get.find<AuthController>();
-  final PersonalController personalController = Get.find<PersonalController>();
+  // final PersonalController personalController = Get.find<PersonalController>();
   final HomeController homeController = Get.find<HomeController>();
 
   Future<void> pickDateTime(BuildContext context) async {
@@ -48,7 +47,7 @@ class PersonalEditController extends GetxController {
         );
 
         // Format as "YYYY-MM-DD HH:MM AM/PM"
-        final formattedDateTime = "${pickedDate.toLocal()}".split('')[0] +
+        final formattedDateTime = "${pickedDate.toLocal()}".split(' ')[0] +
             " ${pickedTime.format(context)}";
 
         dateController.text = formattedDateTime;
@@ -59,10 +58,7 @@ class PersonalEditController extends GetxController {
   Future<void> updateIncome() async {
     print('🔄 updateIncome Called');
 
-    // Retrieve the ID passed to the edit page
-    final id = Get.arguments[
-        'id']; // Get the ID from the arguments passed in Get.toNamed()
-
+    final String? id = Get.arguments?['id'];
     if (id == null || id.isEmpty) {
       Get.snackbar("Error", "Invalid ID", snackPosition: SnackPosition.BOTTOM);
       return;
@@ -72,52 +68,38 @@ class PersonalEditController extends GetxController {
     final String url = "https://s2swebsolutions.in/budgetbook/api/income/$id";
 
     final Map<String, dynamic> updatedData = {
-      "categoryId": categoryIdController.text.trim().toString(),
-      "amount": amountController.text.trim().toString(),
-      "description": descriptionController.text.trim().toString(),
-      "incomeDate": dateController.text.trim().toString(),
+      "categoryId": categoryIdController.text.trim(),
+      "amount": amountController.text.trim(),
+      "description": descriptionController.text.trim(),
+      "incomeDate": dateController.text.trim(),
     };
-    print('this isbody:$updatedData');
 
-    print("📡 Updating Income at URL: $url");
-    print("📝 Request Data: $updatedData");
-    print("🔑 Token: ${authController.token.value}");
+    print('📝 Request Data: $updatedData');
 
     try {
-      // Make API call using makeApiCall()
-      final response = await authController.makeApiCall(
-        url,
-        isPost: true, // Change to isPut if updating
-        body: updatedData,
+      final response = await http.post(
+        Uri.parse(url),
         headers: {
-          'Content-Type':
-              'application/x-www-form-urlencoded', // Ensure content type is set
+          'Authorization': 'Bearer ${authController.token.value}',
         },
+        body: (updatedData), // ✅ Ensure correct encoding
       );
 
-      if (response != null && response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        print("response : $responseData");
-        if (responseData["status"] == "Success") {
-          Get.snackbar("Success", "Income details updated successfully",
-              snackPosition: SnackPosition.BOTTOM);
+      print("📡 API Response: ${response.statusCode} | ${response.body}");
 
-          // Refresh the data in the PersonalController after update
-          // personalController.mergeData();
-          // Get.offAllNamed(Routes.HOME);
-        } else {
-          Get.snackbar("Error",
-              "Failed to update income: ${responseData["message"] ?? "Unknown error"}",
-              snackPosition: SnackPosition.BOTTOM);
-        }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar("Success", "Income details updated successfully",
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
+        Get.offAllNamed(Routes.HOME);
       } else {
-        Get.snackbar("Error", "Unexpected server response",
-            snackPosition: SnackPosition.BOTTOM);
+        print("❌ Server Response: ${response.body}");
+        Get.snackbar("Error", "Failed to update income. ${response.body}",
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
       }
     } catch (e) {
+      print("🚨 Exception: $e");
       Get.snackbar("Error", "Something went wrong: $e",
-          snackPosition: SnackPosition.BOTTOM);
-      print('⚠️ Error: $e');
+          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
     }
   }
 
@@ -259,7 +241,7 @@ class PersonalEditController extends GetxController {
 
           // Refresh the data in the PersonalController after update
           // personalController.mergeData();
-          // Get.offAllNamed(Routes.HOME);
+          Get.offAllNamed(Routes.HOME);
         } else {
           Get.snackbar("Error",
               "Failed to update expense: ${responseData["message"] ?? "Unknown error"}",
@@ -393,7 +375,6 @@ class PersonalEditController extends GetxController {
         if (data != null && data.containsKey('data') && data['data'] is List) {
           List<Map<String, dynamic>> incomeList =
               List<Map<String, dynamic>>.from(data['data']);
-
           // Find the specific item by ID
           var item = incomeList.firstWhere((element) => element['id'] == id,
               orElse: () => {});

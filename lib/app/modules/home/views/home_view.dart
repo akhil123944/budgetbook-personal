@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:money_management/app/core/themes/app_colors.dart';
 import 'package:money_management/app/core/themes/app_textstyles.dart';
 import 'package:money_management/app/routes/app_pages.dart';
+import 'package:shimmer/shimmer.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -120,6 +121,27 @@ class HomeView extends GetView<HomeController> {
                                 title: Text(customer['email'] ?? 'No Email'),
                               ),
                               const Divider(),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  child: TextButton.icon(
+                                    onPressed: () {
+                                      Get.toNamed(Routes.EDITPROFILE);
+                                    },
+                                    label: const Text(
+                                      'Update Profile',
+                                      style: TextStyle(
+                                          color: AppColors.incomeColor),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.edit_attributes,
+                                      size: 35,
+                                    ),
+                                  ),
+                                ),
+                              )
                             ],
                           );
                         },
@@ -370,30 +392,54 @@ class HomeView extends GetView<HomeController> {
                 Expanded(
                   child: Obx(() {
                     return SizedBox(
-                        height: constraints.maxHeight * 0.7,
-                        child: controller.getallDATAINCOME.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Lottie.asset(
+                      height: constraints.maxHeight * 0.7,
+                      child: controller.isLoading
+                              .value // ✅ Show shimmer while fetching data
+                          ? ListView.builder(
+                              itemCount: 6, // Number of shimmer items
+                              itemBuilder: (context, index) {
+                                return Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 16),
+                                    height: 80, // Shimmer item height
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : controller.getallDATAINCOME
+                                  .isEmpty // ✅ Show animation if no data
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Lottie.asset(
                                         'assets/No-Data-Animation.json',
                                         height: 120 * heightFactor,
-                                        width: 120 * widthFactor),
-                                    const Text(
-                                      'No Data Available',
-                                      style: TextStyle(
+                                        width: 120 * widthFactor,
+                                      ),
+                                      const Text(
+                                        'No Data Available',
+                                        style: TextStyle(
                                           fontFamily: 'Poppins',
                                           fontSize: 16.0,
                                           fontWeight: FontWeight.w400,
-                                          color: Colors.black87),
-                                    ),
-                                    SizedBox(height: 30.0 * heightFactor)
-                                  ],
-                                ),
-                              )
-                            : _buildRecentlyAddedList(
-                                heightFactor, widthFactor));
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 30.0 * heightFactor),
+                                    ],
+                                  ),
+                                )
+                              : _buildRecentlyAddedList(
+                                  heightFactor, widthFactor), // ✅ Show data
+                    );
                   }),
                 ),
               ],

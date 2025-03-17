@@ -9,6 +9,7 @@ class AppUrls {
   static const expensivepost = "$baseurl/expense";
   static const allINCOME = "$baseurl/income";
   static const indivisualINCOME = "$baseurl/income";
+  static const profilepost = "$baseurl/profileInfo";
   // Example to generate a specific property details URL dynamically
   static String getindivisualincome(int id) {
     return "$indivisualINCOME/$id";

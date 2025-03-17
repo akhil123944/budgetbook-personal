@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:money_management/app/core/themes/app_colors.dart';
 import 'package:money_management/app/modules/personal/controllers/personal_controller.dart';
 import 'package:money_management/app/routes/app_pages.dart';
+import 'package:shimmer/shimmer.dart';
 
 class Expensedata extends GetView<PersonalController> {
   final RxString selectedFilter = "Today".obs;
@@ -149,8 +150,22 @@ class Expensedata extends GetView<PersonalController> {
                                 loadingBuilder:
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
-                                  return const CircularProgressIndicator(
-                                      strokeWidth: 2);
+                                  return Shimmer.fromColors(
+                                                    baseColor:
+                                                        Colors.grey.shade300,
+                                                    highlightColor:
+                                                        Colors.grey.shade100,
+                                                    child: Container(
+                                                      height: 40,
+                                                      width: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                    ),
+                                                  );
                                 },
                                 errorBuilder: (context, error, stackTrace) {
                                   return Image.asset(
@@ -214,15 +229,18 @@ class Expensedata extends GetView<PersonalController> {
                       onPressed: () {
                         Get.defaultDialog(
                           title: "Confirm Deletion",
+                          titleStyle:
+                              const TextStyle(color: AppColors.expenseColor),
                           middleText:
                               "Are you sure you want to delete this income?",
                           textConfirm: "Yes",
+                          cancelTextColor: AppColors.tealColor,
                           textCancel: "No",
-                          confirmTextColor: Colors.white,
+                          confirmTextColor: AppColors.expenseColor,
+                          buttonColor: AppColors.backgroundColor,
                           onConfirm: () {
-                            controller.deleteIncome(
-                                item['id'].toString()); // Pass the ID
-                            Get.offAllNamed(Routes.HOME); // Close the dialog
+                            controller.deleteExpense(item['id'].toString());
+                            Get.back();
                           },
                         );
                       },
