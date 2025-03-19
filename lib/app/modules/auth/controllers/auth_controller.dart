@@ -149,20 +149,20 @@ class AuthController extends GetxController {
           } else if (userStatus == "1") {
             Get.offAllNamed(Routes.PROFILE); // Go to Profile if status == 1
           } else {
-            Get.snackbar("Error", "Unknown status. Please contact support.",
-                snackPosition: SnackPosition.BOTTOM);
+            // Get.snackbar("Error", "Unknown status. Please contact support.",
+            //     snackPosition: SnackPosition.BOTTOM);
           }
 
-          Get.snackbar("Success", "Verified Successfully.",
-              snackPosition: SnackPosition.BOTTOM);
+          // Get.snackbar("Success", "Verified Successfully.",
+          //     snackPosition: SnackPosition.BOTTOM);
         }
       } else {
-        Get.snackbar("Error", "Something went wrong. Please try again.",
-            snackPosition: SnackPosition.BOTTOM);
+        // Get.snackbar("Error", "Something went wrong. Please try again.",
+        //     snackPosition: SnackPosition.BOTTOM);
       }
     } catch (e) {
-      Get.snackbar("Error", "Failed to verify OTP. Please try again.",
-          snackPosition: SnackPosition.BOTTOM);
+      // Get.snackbar("Error", "Failed to verify OTP. Please try again.",
+      //     snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -430,15 +430,15 @@ class AuthController extends GetxController {
         var streamedResponse = await request.send();
         response = await http.Response.fromStream(streamedResponse);
       } else {
-        // ✅ Handle regular JSON requests
-        headers['Content-Type'] = 'application/json';
+        // // ✅ Handle regular JSON requests
+        // headers['Content-Type'] = 'application/json';
 
         if (isPost) {
           response =
-              await http.post(uri, headers: headers, body: jsonEncode(body));
+              await http.post(uri, headers: headers, body: (body));
         } else if (isPut) {
           response =
-              await http.put(uri, headers: headers, body: jsonEncode(body));
+              await http.put(uri, headers: headers, body: (body));
         } else if (isDelete) {
           response = await http.delete(uri, headers: headers);
         } else {
@@ -453,4 +453,5 @@ class AuthController extends GetxController {
       return null;
     }
   }
+
 }

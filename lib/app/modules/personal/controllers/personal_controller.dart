@@ -28,9 +28,6 @@ class PersonalController extends GetxController {
   final expenseAmountController = TextEditingController();
   final expenseDescriptionController = TextEditingController();
 
-  // Ensure this is initialized
-
-  // final selectedCategoryId = "".obs;
   final selectedTab = 0.obs;
   final storeALLID = [].obs;
 
@@ -80,38 +77,33 @@ class PersonalController extends GetxController {
       print("📌 Sending API request with body: $body");
 
       // Convert the body to a URL-encoded string
-      final encodedBody = Uri(queryParameters: body).query;
+      // final encodedBody = Uri(queryParameters: body).query;
 
-      print("Request body: $encodedBody");
+      print("Request body: $body");
 
-      final response = await http.post(
-        Uri.parse(AppUrls.incomepost),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ${authController.token.value}',
-        },
-        body: encodedBody,
+      final response = await authController.makeApiCall(
+        AppUrls.incomepost,
+        isPost: true,
+        body: body,
       );
 
-      final data = jsonDecode(response.body);
-      print("Response data: $data");
+      print("Response data income post: ${response?.statusCode}");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Success", "Income transaction added",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
-        Get.offAllNamed(Routes.HOME);
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
+        // Get.snackbar("Success", "Income transaction added",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
+        Get.toNamed(Routes.PERSONAL);
 
-        final responseData = data['data'];
-        print("Response Data: $responseData");
+        final responseData = response;
 
         // Clear input fields
         incomeAmountController.clear();
         incomeDateController.clear();
         incomeDescriptionController.clear();
       } else {
-        Get.snackbar("Error", "Failed to add expense: ${data['message']}",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
-        print("Error message: ${data['message']}");
+        // Get.snackbar("Error", "Failed to add expense: ${data['message']}",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+        // print("Error message: ${data['message']}");
       }
     } catch (e) {
       // Add debug print to see the exact error
@@ -148,39 +140,28 @@ class PersonalController extends GetxController {
       };
       print("📌 Sending API request with body: $body");
 
-      // Convert the body to a URL-encoded string
-      final encodedBody = Uri(queryParameters: body).query;
-
-      print("Request body: $encodedBody");
-
-      final response = await http.post(
-        Uri.parse(AppUrls.expensivepost),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': 'Bearer ${authController.token.value}',
-        },
-        body: encodedBody,
+      final response = await authController.makeApiCall(
+        AppUrls.expensivepost,
+        isPost: true,
+        body: body,
       );
 
-      final data = jsonDecode(response.body);
-      print("Response data: $data");
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response?.statusCode == 200 || response?.statusCode == 201) {
         Get.snackbar("Success", "Expense transaction added",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
-        Get.offAllNamed(Routes.HOME);
+        Get.toNamed(Routes.PERSONAL);
 
-        final responseData = data['data'];
-        print("Response Data: $responseData");
+        final responseData = response;
+        print("Response Data---expense: $responseData");
 
         // Clear input fields
         expenseAmountController.clear();
         expenseDateController.clear();
         expenseDescriptionController.clear();
       } else {
-        Get.snackbar("Error", "Failed to add expense: ${data['message']}",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
-        print("Error message: ${data['message']}");
+        // Get.snackbar("Error", "Failed to add expense: ${data['message']}",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+        // print("Error message: ${data['message']}");
       }
     } catch (e) {
       // Add debug print to see the exact error
@@ -208,7 +189,7 @@ class PersonalController extends GetxController {
   Future<void> postCategories() async {
     try {
       if (selectedCategoryType.value.isEmpty) {
-        Get.snackbar("Error", "Please select a category type",
+        Get.snackbar("no category selected", "Please select a category type",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
         return;
       }
@@ -246,18 +227,18 @@ class PersonalController extends GetxController {
         selectedCategoryType.value = '';
         categoryImg.value = null; // ✅ Reset image after upload
 
-        Get.snackbar("Success", "Category added successfully",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
+        // Get.snackbar("Success", "Category added successfully",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
         Get.offAllNamed(Routes.HOME);
       } else {
         print(" Error adding category: ${response?.body}");
-        Get.snackbar("Error", "Failed to add category: ${response?.body}",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+        // Get.snackbar("Error", "Failed to add category: ${response?.body}",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
       }
     } catch (e) {
       print("🚨 Exception: $e");
-      Get.snackbar("Error", "Something went wrong: $e",
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+      // Get.snackbar("Error", "Something went wrong: $e",
+      //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
     }
   }
 
@@ -267,20 +248,9 @@ class PersonalController extends GetxController {
   var getallDATAINCOME = <Map<String, dynamic>>[].obs;
   var getallDATAEXPENSE = <Map<String, dynamic>>[].obs;
   var allIds = <String>[].obs;
-  // var mergedData = <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
 
-//  recent added
-
   var recentlyadded = <Map<String, dynamic>>[].obs;
-
-  // Future<void> fetchFinanceData() async {
-  //   isLoading(true);
-  //   await getINCOME();
-  //   await getEXPENSE();
-  //   mergeData();
-  //   isLoading(false);
-  // }
 
   Future<void> getINCOME() async {
     try {
@@ -337,17 +307,6 @@ class PersonalController extends GetxController {
     }
   }
 
-  // void mergeData() {
-  //   List<Map<String, dynamic>> combinedList = [];
-  //   combinedList.addAll(getallDATAINCOME);
-  //   combinedList.addAll(getallDATAEXPENSE);
-  //   combinedList.shuffle(); // Randomize order
-  //   mergedData.value = combinedList;
-
-  //   print("This is merged data: ${mergedData.value}");
-  //   print("All stored IDs (Income + Expense): ${allIds.value}");
-  // }
-
   Future<void> fetchRecentlyAdded() async {
     print(
         "Fetching recent added data with token: ${authController.token.value}");
@@ -372,9 +331,6 @@ class PersonalController extends GetxController {
     }
   }
 
-// income amount
-
-  // var incomeExpenseData = <Map<String, dynamic>>[].obs;
   var totalIncome = 0.0.obs;
   var totalExpense = 0.0.obs;
 
@@ -395,15 +351,15 @@ class PersonalController extends GetxController {
           totalExpense.value =
               double.tryParse(financeData['expense'].toString()) ?? 0.0;
 
-          Get.snackbar("Success", "Data fetched successfully");
+          // Get.snackbar("Success", "Data fetched successfully");
         } else {
-          Get.snackbar("Error", "Invalid data format");
+          // Get.snackbar("Error", "Invalid data format");
         }
       } else {
-        Get.snackbar("Error", "Failed to fetch finance data");
+        // Get.snackbar("Error", "Failed to fetch finance data");
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e");
+      // Get.snackbar("Error", "Something went wrong: $e");
     }
   }
 
@@ -434,7 +390,7 @@ class PersonalController extends GetxController {
   }
 
 // get categories
-  Rx<int?> selectedCategoryINCOMEId = Rx<int?>(0); // Default to 0
+  Rx<int?> selectedCategoryINCOMEId = Rx<int?>(0);
   Rx<int?> selectedCategoryEXPENSEId = Rx<int?>(0);
   final catagoires = <Map<String, dynamic>>[].obs;
   final categoryTypes = <String>[].obs;
@@ -462,21 +418,19 @@ class PersonalController extends GetxController {
           print('📂 Fetched Categories: $catagoires');
           print('📁 Extracted Category Types: $categoryTypes');
 
-          Get.snackbar("Success", "Fetched categories successfully",
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.green);
+          // Get.snackbar("Success", "Fetched categories successfully",
+          //     snackPosition: SnackPosition.BOTTOM,
+          //     backgroundColor: Colors.green);
         }
       } else {
         print(" Error: ${response?.statusCode}");
         print("Response body: ${response?.body}");
-        Get.snackbar(
-            "Error", "Failed to fetch categories: ${response?.statusCode}",
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+        // Get.snackbar(
+        //     "Error", "Failed to fetch categories: ${response?.statusCode}",
+        //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
       }
     } catch (e) {
       print("Exception: $e");
-      Get.snackbar("Error", "Something went wrong: $e",
-          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
     }
   }
 
@@ -501,27 +455,28 @@ class PersonalController extends GetxController {
         final responseData = jsonDecode(response.body);
 
         if (responseData["status"] == "Success") {
-          Get.snackbar("Success", "Income details deleted successfully",
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: AppColors.tealColor);
+          // Get.snackbar("Success", "Income details deleted successfully",
+          //     snackPosition: SnackPosition.BOTTOM,
+          //     backgroundColor: AppColors.tealColor);
           print("✅ Income deleted successfully.");
+          Get.toNamed(Routes.PERSONALDATAGETINCOME);
 
           // Remove item from local list
           getallDATAINCOME.removeWhere((item) => item['id'].toString() == id);
         } else {
-          Get.snackbar("Error",
-              "Failed to delete income: ${responseData["message"] ?? "Unknown error"}",
-              snackPosition: SnackPosition.BOTTOM);
+          // Get.snackbar("Error",
+          //     "Failed to delete income: ${responseData["message"] ?? "Unknown error"}",
+          //     snackPosition: SnackPosition.BOTTOM);
           print("⚠️ API Error: ${responseData["message"]}");
         }
       } else {
-        Get.snackbar("Error", "Unexpected server response",
-            snackPosition: SnackPosition.BOTTOM);
+        // Get.snackbar("Error", "Unexpected server response",
+        //     snackPosition: SnackPosition.BOTTOM);
         print("⚠️ Unexpected server response: ${response?.statusCode}");
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e",
-          snackPosition: SnackPosition.BOTTOM);
+      // Get.snackbar("Error", "Something went wrong: $e",
+      //     snackPosition: SnackPosition.BOTTOM);
       print("⚠️ Exception: $e");
     }
   }
@@ -547,33 +502,34 @@ class PersonalController extends GetxController {
         final responseData = jsonDecode(response.body);
 
         if (responseData["status"] == "Success") {
-          Get.snackbar("Success", "Expense details deleted successfully",
-              snackPosition: SnackPosition.BOTTOM);
-          print("✅ Expense deleted successfully.");
-          Get.offAllNamed(Routes.HOME);
-
+          // Get.snackbar("Success", "Expense details deleted successfully",
+          //     snackPosition: SnackPosition.BOTTOM);
+          // print("✅ Expense deleted successfully.");
+          // Get.offAllNamed(Routes.HOME);
+          // Get.back();
+          Get.toNamed(Routes.PERSONALDATAGETIEXPENSE);
           // Remove item from local list
-          getallDATAINCOME.removeWhere((item) => item['id'].toString() == id);
+          getallDATAEXPENSE.removeWhere((item) => item['id'].toString() == id);
         } else {
-          Get.snackbar("Error",
-              "Failed to delete Expense: ${responseData["message"] ?? "Unknown error"}",
-              snackPosition: SnackPosition.BOTTOM,
-              borderColor: AppColors.expenseColor);
+          // Get.snackbar("Error",
+          //     "Failed to delete Expense: ${responseData["message"] ?? "Unknown error"}",
+          //     snackPosition: SnackPosition.BOTTOM,
+          //     borderColor: AppColors.expenseColor);
           print("⚠️ API Error: ${responseData["message"]}");
         }
       } else {
-        Get.snackbar("Error", "Unexpected server response",
-            snackPosition: SnackPosition.BOTTOM);
+        // Get.snackbar("Error", "Unexpected server response",
+        //     snackPosition: SnackPosition.BOTTOM);
         print("⚠️ Unexpected server response: ${response?.statusCode}");
       }
     } catch (e) {
-      Get.snackbar("Error", "Something went wrong: $e",
-          snackPosition: SnackPosition.BOTTOM);
+      // Get.snackbar("Error", "Something went wrong: $e",
+      //     snackPosition: SnackPosition.BOTTOM);
       print("⚠️ Exception: $e");
     }
   }
 
-  /// **Show Modal Bottom Sheet**
+  // Show Modal Bottom Sheet
   void showIncomeExpenseModal(BuildContext context) {
     showModalBottomSheet(
         context: context,
@@ -1113,5 +1069,4 @@ class PersonalController extends GetxController {
           );
         });
   }
-
 }

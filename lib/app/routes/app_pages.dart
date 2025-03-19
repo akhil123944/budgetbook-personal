@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:money_management/app/modules/home/views/edit_profile.dart';
 import 'package:money_management/app/modules/personal/views/expense_data.dart';
+import 'package:money_management/app/modules/personal_edit/views/expense_edit.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/login.dart';
 import '../modules/auth/views/otp.dart';
@@ -153,6 +154,11 @@ class AppPages {
     GetPage(
       name: _Paths.PERSONAL_EDIT,
       page: () => const PersonalEditView(),
+      binding: PersonalEditBinding(),
+    ),
+    GetPage(
+      name: _Paths.EXPENSEEDIT,
+      page: () => const ExpenseEditView(),
       binding: PersonalEditBinding(),
     ),
   ];

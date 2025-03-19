@@ -15,6 +15,7 @@ class Expensedata extends GetView<PersonalController> {
 
   @override
   Widget build(BuildContext context) {
+    controller.getEXPENSE();
     return LayoutBuilder(
       builder: (context, constraints) {
         final heightFactor = constraints.maxHeight / 812; // base height
@@ -151,21 +152,17 @@ class Expensedata extends GetView<PersonalController> {
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Shimmer.fromColors(
-                                                    baseColor:
-                                                        Colors.grey.shade300,
-                                                    highlightColor:
-                                                        Colors.grey.shade100,
-                                                    child: Container(
-                                                      height: 40,
-                                                      width: 40,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                    ),
-                                                  );
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
                                 },
                                 errorBuilder: (context, error, stackTrace) {
                                   return Image.asset(
@@ -215,7 +212,7 @@ class Expensedata extends GetView<PersonalController> {
                     IconButton(
                       onPressed: () {
                         Get.toNamed(
-                          Routes.PERSONAL_EDIT,
+                          Routes.EXPENSEEDIT,
                           arguments: {
                             'id': item['id'].toString(),
                           },

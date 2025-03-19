@@ -11,6 +11,9 @@ class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
   @override
   Widget build(BuildContext context) {
+    controller.getINCOME();
+    controller.customerDETAILS();
+    controller.fetchPersonalFinance();
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
     return Scaffold(

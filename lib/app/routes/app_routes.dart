@@ -24,6 +24,7 @@ abstract class Routes {
   static const PERSONALDATAGETINCOME = _Paths.PERSONALDATAGETINCOME;
   static const PERSONALDATAGETIEXPENSE = _Paths.PERSONALDATAGETIEXPENSE;
   static const EDITPROFILE = _Paths.EDITPROFILE;
+  static const EXPENSEEDIT = _Paths.EXPENSEEDIT;
 }
 
 abstract class _Paths {
@@ -47,4 +48,5 @@ abstract class _Paths {
   static const PERSONALDATAGETINCOME = '/income_data';
   static const PERSONALDATAGETIEXPENSE = '/expense_data';
   static const EDITPROFILE = '/edit-profile';
+  static const EXPENSEEDIT = '/expense-edit';
 }

@@ -18,6 +18,11 @@ class PersonalView extends GetView<PersonalController> {
 
   @override
   Widget build(BuildContext context) {
+    controller.categoriesget();
+    controller.fetchPersonalFinance();
+    controller.getINCOME();
+    controller.getEXPENSE();
+    controller.fetchRecentlyAdded();
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final heightFactor = constraints.maxHeight / 812; // base height
@@ -26,7 +31,7 @@ class PersonalView extends GetView<PersonalController> {
           appBar: AppBar(
             leading: GestureDetector(
               onTap: () {
-                Get.back();
+                Get.offAllNamed(Routes.HOME);
               },
               child: const Icon(
                 Icons.arrow_back,

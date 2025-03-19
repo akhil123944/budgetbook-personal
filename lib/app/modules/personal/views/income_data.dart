@@ -9,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 class Incomedata extends GetView<PersonalController> {
   @override
   Widget build(BuildContext context) {
+    controller.getINCOME();
     return LayoutBuilder(
       builder: (context, constraints) {
         final heightFactor = constraints.maxHeight / 812; // base height
@@ -148,21 +149,17 @@ class Incomedata extends GetView<PersonalController> {
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Shimmer.fromColors(
-                                                    baseColor:
-                                                        Colors.grey.shade300,
-                                                    highlightColor:
-                                                        Colors.grey.shade100,
-                                                    child: Container(
-                                                      height: 40,
-                                                      width: 40,
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                    ),
-                                                  );
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(
+                                      height: 40,
+                                      width: 40,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
                                 },
                                 errorBuilder: (context, error, stackTrace) {
                                   return Image.asset(
@@ -224,7 +221,7 @@ class Incomedata extends GetView<PersonalController> {
                     ),
                     IconButton(
                       onPressed: () {
-                         Get.defaultDialog(
+                        Get.defaultDialog(
                           title: "Confirm Deletion",
                           titleStyle:
                               const TextStyle(color: AppColors.expenseColor),

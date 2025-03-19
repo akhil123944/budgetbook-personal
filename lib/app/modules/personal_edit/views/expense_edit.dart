@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:money_management/app/core/themes/app_colors.dart';
 import '../controllers/personal_edit_controller.dart';
 
-class PersonalEditView extends GetView<PersonalEditController> {
-  const PersonalEditView({super.key});
+class ExpenseEditView extends GetView<PersonalEditController> {
+  const ExpenseEditView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class PersonalEditView extends GetView<PersonalEditController> {
           ),
         ),
         title: const Text(
-          'Update Income',
+          'Update Expense',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -87,7 +87,7 @@ class PersonalEditView extends GetView<PersonalEditController> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          controller.updateIncome();
+          controller.updateExpense();
         },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14.0),
