@@ -246,6 +246,7 @@ class PersonalController extends GetxController {
   final AuthController authController = Get.find<AuthController>();
 
   var getallDATAINCOME = <Map<String, dynamic>>[].obs;
+  var getfilterIncome = <Map<String, dynamic>>[].obs;
   var getallDATAEXPENSE = <Map<String, dynamic>>[].obs;
   var allIds = <String>[].obs;
   var isLoading = false.obs;
@@ -275,6 +276,8 @@ class PersonalController extends GetxController {
               .assignAll(List<Map<String, dynamic>>.from(data['data']));
           allIds
               .assignAll(getallDATAINCOME.map((item) => item['id'].toString()));
+          getfilterIncome
+              .assignAll(List<Map<String, dynamic>>.from(data['created_at']));
         }
       } else {
         print(
@@ -363,30 +366,36 @@ class PersonalController extends GetxController {
     }
   }
 
+// Filter data by today's date
   void filterDataByToday() {
-    final today = DateTime.now();
-    getallDATAINCOME.value = getallDATAINCOME
-        .where((item) =>
-            DateTime.parse(item['incomeDate']).difference(today).inDays == 0)
-        .toList();
+    DateTime now = DateTime.now();
+    String today = DateFormat('yyyy-MM-dd').format(now);
+
+    getfilterIncome.assignAll(getfilterIncome.where((item) {
+      String itemDate =
+          DateFormat('yyyy-MM-dd').format(DateTime.parse(item['created_at']));
+      return itemDate == today;
+    }).toList());
   }
 
+// Filter data by a selected date
   void filterDataByDate(DateTime selectedDate) {
-    getallDATAINCOME.value = getallDATAINCOME
-        .where((item) =>
-            DateTime.parse(item['incomeDate'])
-                .difference(selectedDate)
-                .inDays ==
-            0)
-        .toList();
+    String selected = DateFormat('yyyy-MM-dd').format(selectedDate);
+
+    getfilterIncome.assignAll(getfilterIncome.where((item) {
+      String itemDate =
+          DateFormat('yyyy-MM-dd').format(DateTime.parse(item['created_at']));
+      return itemDate == selected;
+    }).toList());
   }
 
-  void filterDataByDateRange(DateTime start, DateTime end) {
-    getallDATAINCOME.value = getallDATAINCOME.where((item) {
-      DateTime itemDate = DateTime.parse(item['incomeDate']);
-      return itemDate.isAfter(start.subtract(Duration(days: 1))) &&
-          itemDate.isBefore(end.add(Duration(days: 1)));
-    }).toList();
+// Filter data by a date range
+  void filterDataByDateRange(DateTime startDate, DateTime endDate) {
+    getfilterIncome.assignAll(getfilterIncome.where((item) {
+      DateTime itemDate = DateTime.parse(item['created_at']);
+      return itemDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
+          itemDate.isBefore(endDate.add(const Duration(days: 1)));
+    }).toList());
   }
 
 // get categories
@@ -459,7 +468,7 @@ class PersonalController extends GetxController {
           //     snackPosition: SnackPosition.BOTTOM,
           //     backgroundColor: AppColors.tealColor);
           print("✅ Income deleted successfully.");
-          Get.toNamed(Routes.PERSONALDATAGETINCOME);
+          // Get.toNamed(Routes.PERSONALDATAGETINCOME);
 
           // Remove item from local list
           getallDATAINCOME.removeWhere((item) => item['id'].toString() == id);

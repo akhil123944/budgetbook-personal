@@ -143,7 +143,8 @@ class PersonalEditController extends GetxController {
 
           // Refresh the data in the PersonalController after update
           // personalController.mergeData();
-          Get.offAllNamed(Routes.HOME);
+          // Get.offAllNamed(Routes.HOME);
+          Get.back();
         } else {
           // Get.snackbar("Error",
           //     "Failed to update expense: ${responseData["message"] ?? "Unknown error"}",
@@ -256,6 +257,7 @@ class PersonalEditController extends GetxController {
     amountController.dispose();
     descriptionController.dispose();
     dateController.dispose();
+    
     super.onClose();
   }
 }

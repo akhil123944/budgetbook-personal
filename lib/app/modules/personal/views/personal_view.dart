@@ -339,11 +339,11 @@ class PersonalView extends GetView<PersonalController> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(
-                color: Colors.transparent,
-                width: 1.5,
-              ),
-              borderRadius: BorderRadius.circular(30),
+              // border: Border.all(
+              //   color: Colors.transparent,
+              //   width: 1.5,
+              // ),
+              borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.tealColor.withOpacity(0.4),
@@ -525,7 +525,7 @@ class PersonalView extends GetView<PersonalController> {
                           buttonColor: AppColors.backgroundColor,
                           onConfirm: () {
                             controller.deleteIncome(item['id'].toString());
-                            Get.offAllNamed(Routes.HOME);
+                           
                           },
                         );
                       },

@@ -42,10 +42,29 @@ class Expensedata extends GetView<PersonalController> {
               }
             }),
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _showDateFilterOptions(context),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              _showDateFilterOptions(context);
+            },
             backgroundColor: AppColors.backgroundColor,
-            child: Icon(Icons.filter_list, color: AppColors.tealColor),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(8), // Adjust for rectangle shape
+            ),
+            label: Row(
+              children: [
+                Icon(Icons.filter_list, color: AppColors.tealColor),
+                const SizedBox(width: 8), // Spacing between icon and text
+                Text(
+                  'Filter',
+                  style: TextStyle(
+                    color: AppColors.tealColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

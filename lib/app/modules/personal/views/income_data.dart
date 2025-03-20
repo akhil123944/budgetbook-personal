@@ -59,16 +59,28 @@ class Incomedata extends GetView<PersonalController> {
               return _buildRecentlyAddedList(heightFactor, widthFactor);
             }
           }),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => showFilterSheet(context),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              showFilterSheet(context);
+            },
             backgroundColor: AppColors.backgroundColor,
-            child: TextButton.icon(
-              onPressed: () {},
-              label: const Text(
-                'filter',
-                style: TextStyle(color: AppColors.backgroundColor),
-              ),
-              icon: Icon(Icons.filter_list, color: AppColors.tealColor),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(8), // Adjust for rectangle shape
+            ),
+            label: Row(
+              children: [
+                Icon(Icons.filter_list, color: AppColors.tealColor),
+                const SizedBox(width: 8), // Spacing between icon and text
+                Text(
+                  'Filter',
+                  style: TextStyle(
+                    color: AppColors.tealColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -259,52 +271,86 @@ class Incomedata extends GetView<PersonalController> {
     DateTime? endDate;
 
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            ListTile(
-              leading: const Icon(Icons.today, color: Colors.blue),
-              title: const Text("Today"),
-              onTap: () {
-                controller.filterDataByToday();
-                Get.back();
-              },
+      StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
-            ListTile(
-              leading: Icon(Icons.calendar_today, color: AppColors.tealColor),
-              title: const Text("Select a Date"),
-              onTap: () async {
-                selectedDate = await _pickDate(context);
-                if (selectedDate != null) {
-                  controller.filterDataByDate(selectedDate!);
-                }
-                Get.back();
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Filter Options",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const Divider(), // Adds a neat separator
+
+                // ✅ Today Filter
+                ListTile(
+                  leading: const Icon(Icons.today, color: Colors.blue),
+                  title: const Text("Today"),
+                  onTap: () {
+                    controller.filterDataByToday();
+                    Get.back();
+                  },
+                ),
+
+                // ✅ Select a Single Date
+                ListTile(
+                  leading:
+                      Icon(Icons.calendar_today, color: AppColors.tealColor),
+                  title: const Text("Select a Date"),
+                  onTap: () async {
+                    DateTime? date = await _pickDate(context);
+                    if (date != null) {
+                      setState(() => selectedDate = date);
+                      controller.filterDataByDate(date);
+                      Get.back();
+                    }
+                  },
+                  trailing: selectedDate != null
+                      ? Text(
+                          "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
+                          style: const TextStyle(color: Colors.black54),
+                        )
+                      : null,
+                ),
+
+                // ✅ Select Date Range
+                ListTile(
+                  leading:
+                      Icon(Icons.date_range, color: AppColors.expenseColor),
+                  title: const Text("Select Date Range"),
+                  onTap: () async {
+                    DateTime? start = await _pickDate(context);
+                    if (start != null) {
+                      DateTime? end = await _pickDate(context);
+                      if (end != null && end.isAfter(start)) {
+                        startDate = start;
+                        endDate = end;
+                        controller.filterDataByDateRange(start, end);
+                        Get.back();
+                      }
+                    }
+                  },
+                  trailing: startDate != null && endDate != null
+                      ? Text(
+                          "${startDate!.day}/${startDate!.month} - ${endDate!.day}/${endDate!.month}",
+                          style: const TextStyle(color: Colors.black54),
+                        )
+                      : null,
+                ),
+              ],
             ),
-            ListTile(
-              leading:
-                  const Icon(Icons.date_range, color: AppColors.expenseColor),
-              title: const Text("Select Date Range"),
-              onTap: () async {
-                startDate = await _pickDate(context);
-                if (startDate != null) {
-                  endDate = await _pickDate(context);
-                  if (endDate != null) {
-                    controller.filterDataByDateRange(startDate!, endDate!);
-                  }
-                }
-                Get.back();
-              },
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

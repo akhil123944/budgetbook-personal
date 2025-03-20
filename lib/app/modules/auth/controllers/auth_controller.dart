@@ -252,16 +252,15 @@ class AuthController extends GetxController {
     try {
       final response = await http.post(
         Uri.parse(AppUrls.refresfToken),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"refreshToken": refreshToken.value}),
+        // headers: {'Content-Type': 'application/json'},
+        body: ({"refresh_token": refreshToken.value}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        if (data['accessToken'] != null && data['refreshToken'] != null) {
-          saveTokens(
-              data['accessToken'], data['refreshToken'], customerId.value);
+        if (data['token'] != null && data['refresh_tokenken'] != null) {
+          saveTokens(data['token'], data['refresh_token'], customerId.value);
           print(' Token refreshed successfully.');
           return true;
         } else {
@@ -434,11 +433,9 @@ class AuthController extends GetxController {
         // headers['Content-Type'] = 'application/json';
 
         if (isPost) {
-          response =
-              await http.post(uri, headers: headers, body: (body));
+          response = await http.post(uri, headers: headers, body: (body));
         } else if (isPut) {
-          response =
-              await http.put(uri, headers: headers, body: (body));
+          response = await http.put(uri, headers: headers, body: (body));
         } else if (isDelete) {
           response = await http.delete(uri, headers: headers);
         } else {
@@ -453,5 +450,4 @@ class AuthController extends GetxController {
       return null;
     }
   }
-
 }
