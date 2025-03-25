@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:money_management/app/core/constants/app_urls.dart';
 import 'package:money_management/app/modules/auth/controllers/auth_controller.dart';
 import 'package:money_management/app/modules/home/controllers/home_controller.dart';
-import 'package:money_management/app/routes/app_pages.dart';
 // import 'package:http/http.dart' as http;
 
 class PersonalEditController extends GetxController {

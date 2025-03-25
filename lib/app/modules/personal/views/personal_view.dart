@@ -1,12 +1,8 @@
 // ignore_for_file: deprecated_member_use, invalid_use_of_protected_member
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:glassmorphism/glassmorphism.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-import 'package:money_management/app/core/constants/app_urls.dart';
 import 'package:money_management/app/core/themes/app_colors.dart';
 import 'package:money_management/app/core/themes/app_textstyles.dart';
 import 'package:money_management/app/modules/personal/controllers/personal_controller.dart';
@@ -525,7 +521,6 @@ class PersonalView extends GetView<PersonalController> {
                           buttonColor: AppColors.backgroundColor,
                           onConfirm: () {
                             controller.deleteIncome(item['id'].toString());
-                           
                           },
                         );
                       },

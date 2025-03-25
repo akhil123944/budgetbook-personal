@@ -92,10 +92,8 @@ class PersonalController extends GetxController {
       if (response?.statusCode == 200 || response?.statusCode == 201) {
         // Get.snackbar("Success", "Income transaction added",
         //     snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
-        Get.toNamed(Routes.PERSONAL);
-
+        fetchRecentlyAdded();
         final responseData = response;
-
         // Clear input fields
         incomeAmountController.clear();
         incomeDateController.clear();
@@ -149,7 +147,7 @@ class PersonalController extends GetxController {
       if (response?.statusCode == 200 || response?.statusCode == 201) {
         Get.snackbar("Success", "Expense transaction added",
             snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green);
-        Get.toNamed(Routes.PERSONAL);
+        getEXPENSE();
 
         final responseData = response;
         print("Response Data---expense: $responseData");
@@ -610,7 +608,6 @@ class PersonalController extends GetxController {
                           child: Column(
                             children: [
                               // Define this in your controller or state
-
                               Container(
                                 width: double.infinity,
                                 height: 260,
@@ -812,7 +809,7 @@ class PersonalController extends GetxController {
                                     // Post expense only if an expense category is selected
                                     if (categoryIncomeId != 0) {
                                       postIncome(index: categoryIncomeId);
-                                      Get.offNamed(Routes.HOME);
+                                      Get.back();
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -1045,7 +1042,7 @@ class PersonalController extends GetxController {
                                     // Post expense only if an expense category is selected
 
                                     postExpense(index: categoryEXPENSEId);
-                                    Get.offNamed(Routes.HOME);
+                                    Get.back();
                                   },
                                   style: ElevatedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(

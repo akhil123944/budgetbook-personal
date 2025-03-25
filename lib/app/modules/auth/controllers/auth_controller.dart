@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -229,54 +231,107 @@ class AuthController extends GetxController {
     customerId.value = storage.read("customerId") ?? "";
   }
 
-  // Save tokens
-  void saveTokens(String newToken, String newRefreshToken, String id) {
+// ✅ Save tokens locally and verify immediately
+void saveTokens(String newToken, String newRefreshToken, String id) {
+  try {
+    // ✅ Update memory values first
+    token.value = newToken;
+    refreshToken.value = newRefreshToken;
+    customerId.value = id;
+
+    // ✅ Store tokens securely in persistent storage
     storage.write("token", newToken);
     storage.write("refreshToken", newRefreshToken);
     storage.write("customerId", id);
 
-    print("Tokens Saved:");
-    print("Token: ${storage.read('token')}");
-    print(" Refresh Token: ${storage.read('refreshToken')}");
-    print(" Customer ID: ${storage.read('customerId')}");
+    // ✅ Read back to confirm storage
+    String? savedToken = storage.read("token");
+    String? savedRefreshToken = storage.read("refreshToken");
+    String? savedCustomerId = storage.read("customerId");
+
+    if (savedToken == newToken && savedRefreshToken == newRefreshToken && savedCustomerId == id) {
+      print("✅ Tokens saved and verified successfully.");
+    } else {
+      print("⚠️ Token save mismatch detected!");
+      print("Expected Token: $newToken, Found: $savedToken");
+      print("Expected Refresh Token: $newRefreshToken, Found: $savedRefreshToken");
+      print("Expected Customer ID: $id, Found: $savedCustomerId");
+    }
+  } catch (e) {
+    print('❌ Error saving tokens: $e');
   }
+}
 
-  //  Refresh token
-  Future<bool> refreshAuthToken() async {
-    if (refreshToken.value.isEmpty) {
-      print('🚫 No refresh token found. Cannot refresh.');
-      return false;
-    }
 
-    print(' Attempting to refresh token...');
-    try {
-      final response = await http.post(
-        Uri.parse(AppUrls.refresfToken),
-        // headers: {'Content-Type': 'application/json'},
-        body: ({"refresh_token": refreshToken.value}),
-      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+// refresh token
+bool _isRefreshing = false;
+Completer<void>? _refreshLock; 
+ // ✅ Lock to prevent multiple refreshes
 
-        if (data['token'] != null && data['refresh_tokenken'] != null) {
-          saveTokens(data['token'], data['refresh_token'], customerId.value);
-          print(' Token refreshed successfully.');
-          return true;
-        } else {
-          print(' Invalid refresh response. Logging out.');
-          logout();
-        }
-      } else {
-        print('Refresh token request failed: ${response.statusCode}');
-        logout();
-      }
-    } catch (e) {
-      print(' Refresh token error: $e');
-    }
-
+Future<bool> refreshTokens() async {
+  if (token.value.isEmpty || refreshToken.value.isEmpty) {
+    print('❌ Tokens are empty. Cannot refresh.');
     return false;
   }
+
+  if (_isRefreshing) {
+    print('🔄 Token refresh already in progress. Waiting...');
+    await _refreshLock?.future; // ✅ Wait for the ongoing refresh to complete
+    return token.value.isNotEmpty;
+  }
+
+  _isRefreshing = true;
+  _refreshLock = Completer<void>(); // ✅ Reinitialize before usage
+  final lock = _refreshLock!;
+
+  try {
+    print('🔄 Attempting to refresh token...');
+    print('🔑 Refresh Token In API: ${refreshToken.value}');
+
+    final response = await http.post(
+      Uri.parse(AppUrls.refresfToken),
+      body: {'refresh_token': refreshToken.value},
+    ).timeout(const Duration(seconds: 10));
+
+    print('📩 Refresh token response status: ${response.statusCode}');
+    print('📩 Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+      if (responseData['status'] == 'success') {
+        String newToken = responseData['token'] ?? '';
+        String newRefreshToken = responseData['refresh_token'] ?? '';
+
+        if (newToken.isNotEmpty && newRefreshToken.isNotEmpty) {
+          saveTokens(newToken, newRefreshToken, customerId.value);
+          print('✅ Tokens refreshed successfully.');
+          return true;
+        } else {
+          print('⚠️ Invalid token or refresh_token in response.');
+        }
+      } else {
+        print('❌ Token refresh failed: ${responseData['message']}');
+      }
+    } else {
+      print('❌ Failed to refresh token. HTTP status: ${response.statusCode}');
+    }
+  } on SocketException catch (e) {
+    print('❌ Network error: ${e.message}');
+  } on TimeoutException {
+    print('⏳ Token refresh request timed out.');
+  } catch (e) {
+    print('❌ Unexpected error during token refresh: $e');
+  } finally {
+    _isRefreshing = false;
+    lock.complete(); // ✅ Release the lock
+  }
+
+  print('❌ Token refresh failed.');
+  return false;
+}
+
 
 //  Save Session
   Future<void> saveSession(String id, String authToken, String refresh) async {
@@ -284,7 +339,6 @@ class AuthController extends GetxController {
       await storage.write('customerId', id);
       await storage.write('token', authToken);
       await storage.write('refreshToken', refresh);
-
       // Verify storage
       print(
           "✅ Session Saved: ID=${storage.read('customerId')}, Token=${storage.read('token')}, RefreshToken=${storage.read('refreshToken')}");
@@ -378,76 +432,93 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<http.Response?> makeApiCall(
-    String url, {
-    Map<String, String>? headers,
-    Map<String, dynamic>? body, // Updated to dynamic for flexibility
-    bool isGet = false,
-    bool isPost = false,
-    bool isPut = false,
-    bool isDelete = false,
-    Map<String, String>? fields,
-    List<http.MultipartFile>? files,
-  }) async {
-    if (isTokenExpired(token.value)) {
-      print('Token expired, attempting to refresh...');
-      final refreshed = await refreshAuthToken();
-      if (!refreshed) {
-        print('Token refresh failed. Redirecting to login.');
-        logout();
-        return null;
-      }
-      print('✅ Token refreshed successfully. Proceeding with API call...');
-    }
+Future<http.Response?> makeApiCall(
+  String url, {
+  Map<String, String>? headers,
+  Map<String, dynamic>? body,
+  bool isGet = false,
+  bool isPost = false,
+  bool isPut = false,
+  bool isDelete = false,
+  Map<String, String>? fields,
+  List<http.MultipartFile>? files,
+  bool retry = true,
+}) async {
+  if (isTokenExpired(token.value)) {
+    print('🔄 Token expired, attempting to refresh...');
+    final refreshed = await refreshTokens();
 
-    headers ??= {};
-    headers['Authorization'] = 'Bearer ${token.value}';
-
-    try {
-      final Uri uri = Uri.parse(url);
-      late http.Response response;
-
-      // ✅ Handle MultipartRequest when files are present
-      if (files != null && files.isNotEmpty) {
-        var request = http.MultipartRequest(
-            isPost
-                ? 'POST'
-                : isPut
-                    ? 'PUT'
-                    : 'POST',
-            uri);
-        request.headers.addAll(headers);
-
-        // Add form fields if present
-        if (fields != null) {
-          request.fields.addAll(fields);
-        }
-
-        // Add files to request
-        request.files.addAll(files);
-
-        var streamedResponse = await request.send();
-        response = await http.Response.fromStream(streamedResponse);
-      } else {
-        // // ✅ Handle regular JSON requests
-        // headers['Content-Type'] = 'application/json';
-
-        if (isPost) {
-          response = await http.post(uri, headers: headers, body: (body));
-        } else if (isPut) {
-          response = await http.put(uri, headers: headers, body: (body));
-        } else if (isDelete) {
-          response = await http.delete(uri, headers: headers);
-        } else {
-          response = await http.get(uri, headers: headers);
-        }
-      }
-
-      print('📡 API Response: ${response.statusCode} | ${response.body}');
-      return response;
-    } catch (e) {
-      print('API call error: $e');
+    if (!refreshed) {
+      print('❌ Token refresh failed. Redirecting to login.');
+      logout();
       return null;
     }
+    print('✅ Token refreshed successfully. Proceeding with API call...');
   }
+
+  headers ??= {};
+  headers['Authorization'] = 'Bearer ${token.value}';
+
+  try {
+    final Uri uri = Uri.parse(url);
+    late http.Response response;
+
+    if (files != null && files.isNotEmpty) {
+      var request = http.MultipartRequest(
+        isPost ? 'POST' : isPut ? 'PUT' : 'POST',
+        uri,
+      );
+      request.headers.addAll(headers);
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      request.files.addAll(files);
+      var streamedResponse = await request.send();
+      response = await http.Response.fromStream(streamedResponse);
+    } else {
+      if (isPost) {
+        response = await http.post(uri, headers: headers, body: body);
+      } else if (isPut) {
+        response = await http.put(uri, headers: headers, body: body);
+      } else if (isDelete) {
+        response = await http.delete(uri, headers: headers);
+      } else {
+        response = await http.get(uri, headers: headers);
+      }
+    }
+
+    print('📡 API Response: ${response.statusCode} | ${response.body}');
+
+    if (response.statusCode == 401 && retry) {
+      print('⚠️ Unauthorized response. Retrying API call after token refresh...');
+      final refreshed = await refreshTokens();
+      if (refreshed) {
+        print('✅ Token refreshed. Retrying API call...');
+        return makeApiCall(
+          url,
+          headers: headers,
+          body: body,
+          isGet: isGet,
+          isPost: isPost,
+          isPut: isPut,
+          isDelete: isDelete,
+          fields: fields,
+          files: files,
+          retry: false,
+        );
+      } else {
+        print('❌ Retrying API call failed. Logging out.');
+        logout();
+      }
+    }
+
+    return response;
+  } catch (e) {
+    print('❌ API call error: $e');
+    return null;
+  }
+}
+
 }

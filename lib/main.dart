@@ -11,7 +11,8 @@ void main() async {
   await GetStorage.init();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  Get.put(AuthController());
+
+  Get.put(AuthController()); // Ensure it's available globally
 
   runApp(
     GetMaterialApp(
@@ -24,3 +25,4 @@ void main() async {
     ),
   );
 }
+

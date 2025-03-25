@@ -29,13 +29,17 @@ class HomeController extends GetxController {
 
   @override
   void onReady() {
-    print('HomeController initialized :${authController.token.value}');
     super.onReady();
+    print(
+        'HomeController initialized :${authController.token.value}'); // Ensure authController exists
+
     customerDETAILS();
     fetchFinanceDataGET();
     fetchPersonalFinance();
+
     print('totalIncome : ${totalIncome.value}');
     print('totalExpense : ${totalExpense.value}');
+
     getINCOME();
     getEXPENSE();
   }
